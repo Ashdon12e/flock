@@ -20,7 +20,6 @@ if (!sessionStorage.getItem('peopleOnline')) {
 }
 
 let timeout
-let chatInProgress = true
 
 const $peopleOnline = $('#peopleOnline p span')
 const $skipBtn = $('#skip-btn')
@@ -69,29 +68,25 @@ const initializeConnection = () => {
   const interests =
     params
       .get('interests')
-      ?.split(',')
+      ?.split(',') 
       .filter((x) => !!x)
       .map((x) => x.trim()) || []
   ws.emit('match', { data: 'text', interests })
 }
 
 $skipBtn.addEventListener('click', async () => {
-  chatInProgress = false
-  const skipMessage = document.createElement('div')
-  skipMessage.className = 'message-status'
-  skipMessage.innerHTML = 'Chat skipped, waiting for next user...'
-  $msgs.appendChild(skipMessage)
+  ws.emit('disconnect')
 
-  setTimeout(() => {
-    const nextBtn = document.createElement('button')
-    nextBtn.innerHTML = 'Next'
-    nextBtn.addEventListener('click', async () => {
-      initializeConnection()
-      chatInProgress = true
-      nextBtn.remove()
-    })
-    document.body.appendChild(nextBtn)
-  }, 2000)
+  $msgs.innerHTML = ''
+  const status = document.createElement('div')
+  status.className = 'message-status'
+  status.innerHTML = 'Looking for people online...'
+  $msgs.appendChild(status)
+
+  $sendBtn.disabled = true
+  $input.readOnly = true
+
+  initializeConnection()
 })
 
 $sendBtn.addEventListener('click', () => {
