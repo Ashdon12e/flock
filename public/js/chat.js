@@ -77,6 +77,8 @@ const initializeConnection = () => {
 $skipBtn.addEventListener('click', async () => {
   ws.emit('disconnect')
 
+  $skipBtn.innerHTML = 'User skipped. Press skip for next person.'
+
   $msgs.innerHTML = ''
   const status = document.createElement('div')
   status.className = 'message-status'
@@ -85,8 +87,6 @@ $skipBtn.addEventListener('click', async () => {
 
   $sendBtn.disabled = true
   $input.readOnly = true
-
-  initializeConnection()
 })
 
 $sendBtn.addEventListener('click', () => {
@@ -162,7 +162,7 @@ ws.register('typing', async (isTyping) => {
 })
 
 ws.register('disconnect', async () => {
-  console.log('received disconnect request')
+  $skipBtn.innerHTML = 'User skipped. Press skip for next person.'
   initializeConnection()
 })
 
