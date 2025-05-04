@@ -68,25 +68,16 @@ const initializeConnection = () => {
   const interests =
     params
       .get('interests')
-      ?.split(',') 
-      .filter((x) => !!x)
-      .map((x) => x.trim()) || []
+      ?.split(',') || []
   ws.emit('match', { data: 'text', interests })
 }
 
 $skipBtn.addEventListener('click', async () => {
-  ws.emit('disconnect')
+  ws.emit('disconnect')  // Disconnect the current user (you)
+  initializeConnection()  // Reset the UI and wait for a new match
 
-  $skipBtn.innerHTML = 'User skipped. Press skip for next person.'
-
-  $msgs.innerHTML = ''
-  const status = document.createElement('div')
-  status.className = 'message-status'
-  status.innerHTML = 'Looking for people online...'
-  $msgs.appendChild(status)
-
-  $sendBtn.disabled = true
-  $input.readOnly = true
+  // Wait for the stranger to click skip and disconnect them when they do
+  ws.emit('strangerSkip')  // You can send this event to inform the stranger to stay until they skip
 })
 
 $sendBtn.addEventListener('click', () => {
@@ -109,37 +100,12 @@ ws.register('peopleOnline', async (data) => {
 })
 
 ws.register('connected', async (data) => {
-  const params = new URLSearchParams(window.location.search)
-  const interests =
-    params
-      .get('interests')
-      ?.split(',') 
-      .filter((x) => !!x)
-      .map((x) => x.trim()) || []
-
-  let commonInterests = data.at(-1) || ''
-  const first = data.slice(0, -1)
-  if (first.length) {
-    commonInterests = `${first.join(', ')} and ${commonInterests}`
-  }
-
   $msgs.innerHTML = ''
   const status = document.createElement('div')
   status.className = 'message-status'
   status.innerHTML = 'You are now talking to a random stranger'
   $msgs.appendChild(status)
-  if (commonInterests) {
-    const status = document.createElement('div')
-    status.className = 'message-status'
-    status.innerHTML = `You both like ${esc(commonInterests)}`
-    $msgs.appendChild(status)
-  } else if (interests.length) {
-    const status = document.createElement('div')
-    status.className = 'message-status'
-    status.innerHTML =
-      "Couldn't find anyone with similar interests, so this stranger is completely random. Try adding more interests!"
-    $msgs.appendChild(status)
-  }
+
   $msgArea.scrollTop = $msgArea.scrollHeight
   $sendBtn.disabled = false
   $input.readOnly = false
@@ -162,8 +128,13 @@ ws.register('typing', async (isTyping) => {
 })
 
 ws.register('disconnect', async () => {
-  $skipBtn.innerHTML = 'User skipped. Press skip for next person.'
-  initializeConnection()
+  $msgs.innerHTML = '<div class="message-status">Stranger disconnected. Please click skip to find a new person.</div>'
+})
+
+ws.register('strangerSkip', async () => {
+  // Handle the stranger skipping, show them the disconnect message
+  $msgs.innerHTML = '<div class="message-status">Stranger has skipped. You are now matched with a new person.</div>'
+  initializeConnection()  // Reset and wait for a new match
 })
 
 configureChat()
