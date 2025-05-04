@@ -128,12 +128,13 @@ ws.register('typing', async (isTyping) => {
 })
 
 ws.register('disconnect', async () => {
-  $msgs.innerHTML = '<div class="message-status">Stranger disconnected. Please click skip to find a new person.</div>'
+  // Retain chat history and show disconnect message
+  $msgs.innerHTML += '<div class="message-status">Stranger disconnected. Please click skip to find a new person.</div>'
 })
 
 ws.register('strangerSkip', async () => {
   // Handle the stranger skipping, show them the disconnect message
-  $msgs.innerHTML = '<div class="message-status">Stranger has skipped. You are now matched with a new person.</div>'
+  $msgs.innerHTML += '<div class="message-status">Stranger has skipped. You are now matched with a new person.</div>'
   initializeConnection()  // Reset and wait for a new match
 })
 
